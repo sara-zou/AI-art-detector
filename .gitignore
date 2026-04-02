@@ -1,1 +1,9 @@
-/human_art_data
+human_art_data/
+
+dataset/
+
+data/
+
+ai_art_data/
+
+datasplitting.py
