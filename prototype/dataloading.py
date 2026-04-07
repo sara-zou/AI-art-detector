@@ -14,8 +14,8 @@ def get_data_loaders(batch_size=8, max_samples=None, num_workers=4):
         )
     ])
 
-    train_dataset = datasets.ImageFolder('../dataset/train', transform=transform)
-    val_dataset = datasets.ImageFolder('../dataset/val', transform=transform)
+    train_dataset = datasets.ImageFolder('dataset/train', transform=transform)
+    val_dataset = datasets.ImageFolder('dataset/val', transform=transform)
     if max_samples:
         train_dataset = Subset(train_dataset, range(min(max_samples, len(train_dataset))))
         val_dataset = Subset(val_dataset, range(min(max_samples, len(val_dataset))))
