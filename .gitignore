@@ -7,3 +7,5 @@ data/
 ai_art_data/
 
 datasplitting.py
+
+training.py
