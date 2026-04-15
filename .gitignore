@@ -6,6 +6,8 @@ data/
 
 ai_art_data/
 
+experiments/
+
 datasplitting.py
 
 training.py
