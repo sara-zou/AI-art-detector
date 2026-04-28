@@ -103,8 +103,8 @@ def train_stage(model, train_loader, val_loader, criterion, device, scaler,
                                           device, scaler, accumulation_steps, is_train=False)
         scheduler.step()
 
-        print(f"Train — loss: {train_loss:.4f}  acc: {train_acc:.4f}")
-        print(f"Val   — loss: {val_loss:.4f}  acc: {val_acc:.4f}  lr: {scheduler.get_last_lr()[0]:.2e}")
+        print(f"Train - loss: {train_loss:.4f}  acc: {train_acc:.4f}")
+        print(f"Val   - loss: {val_loss:.4f}  acc: {val_acc:.4f}  lr: {scheduler.get_last_lr()[0]:.2e}")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
