@@ -26,7 +26,10 @@ def evaluate(model, loader, device):
     all_probs  = []
 
     with torch.no_grad():
-        for images, labels in tqdm(loader, desc="Evaluating"):
+        for images, labels in tqdm(
+            loader, 
+            desc="Evaluating",
+            dynamic_ncols=True):
             images = images.to(device, non_blocking=True)
             outputs = model(images)
             probs   = torch.sigmoid(outputs).cpu().squeeze(1)
@@ -85,14 +88,13 @@ def main():
         max_samples  = None,
         num_workers  = 4,
         img_size     = 224,
-        use_weighted_sampler = False,
     )
 
     model = load_model("resnet18_best.pth", device)
 
     labels, preds, probs = evaluate(model, val_loader, device)
 
-    print("\n--- Classification Report ---")
+    print("\nClassification Report")
     print(classification_report(labels, preds, target_names=["Human", "AI"]))
 
     auc = plot_roc_curve(labels, probs, save_path="roc_curve.png")

@@ -6,16 +6,6 @@ import matplotlib.pyplot as plt
 
 
 def get_data_loaders(batch_size=32, max_samples=None, num_workers=4, img_size=224):
-    
-    """
-    Returns data loaders ready for train
-
-    Args:
-        batch_size:   Mini-batch size.
-        max_samples:  Cap dataset size.
-        num_workers:  DataLoader worker processes.
-        img_size:     Spatial resolution fed to the model (224 for ResNet).
-    """
 
     train_transform = transforms.Compose([
         transforms.Resize((int(img_size * 1.15), int(img_size * 1.15))),
@@ -41,8 +31,10 @@ def get_data_loaders(batch_size=32, max_samples=None, num_workers=4, img_size=22
     val_dataset   = datasets.ImageFolder('dataset/val',   transform=val_transform)
 
     if max_samples:
-        train_dataset = Subset(train_dataset, range(min(max_samples, len(train_dataset))))
-        val_dataset   = Subset(val_dataset,   range(min(max_samples // 5, len(val_dataset))))
+        train_indices = torch.randperm(len(train_dataset))[:min(max_samples, len(train_dataset))]
+        val_indices = torch.randperm(len(val_dataset))[:min(max_samples // 5, len(val_dataset))]
+        train_dataset = Subset(train_dataset, train_indices)
+        val_dataset = Subset(val_dataset, val_indices)
 
     train_loader = DataLoader(
         train_dataset,
