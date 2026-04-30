@@ -13,7 +13,3 @@ datasplitting.py
 __pycache__/
 
 .DS_Store
-
-prototype/__pycache__/
-
-prototype/.DS_Store
