@@ -21,7 +21,7 @@ def load_model(checkpoint_path, device):
     return model
 
 
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, threshold = 0.5):
     all_labels = []
     all_probs  = []
 
@@ -38,8 +38,18 @@ def evaluate(model, loader, device):
 
     all_labels = np.array(all_labels)
     all_probs  = np.array(all_probs)
-    all_preds  = (all_probs >= 0.5).astype(int)
+    
+    all_preds  = (all_probs >= threshold).astype(int)
     return all_labels, all_preds, all_probs
+
+
+def find_optimal_threshold(labels, probs):
+    fpr, tpr, thresholds = roc_curve(labels, probs)
+
+    j_scores = tpr - fpr
+    best_idx = np.argmax(j_scores)
+
+    return thresholds[best_idx]
 
 
 def plot_confusion_matrix(labels, preds, save_path=None):
@@ -93,7 +103,15 @@ def main():
     model = load_model("resnet18_best.pth", device)
 
     labels, preds, probs = evaluate(model, val_loader, device)
-
+    
+    optimal_threshold = find_optimal_threshold(labels, probs)
+    print(f"\nOptimal threshold: {optimal_threshold:.4f}")
+    
+    with open("src/threshold.py", "w") as f:
+        f.write(f"THRESHOLD = {optimal_threshold}\n")
+    
+    preds = (probs >= optimal_threshold).astype(int)
+    
     print("\nClassification Report")
     print(classification_report(labels, preds, target_names=["Human", "AI"]))
 

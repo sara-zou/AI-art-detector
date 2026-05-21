@@ -13,17 +13,19 @@ CONFIG = dict(
     batch_size = 16,
     accumulation_steps = 2,     
     num_workers = 0,
-    max_samples = 5000,   
+    max_samples = None,   
 
-    head_lr           = 1e-3,  
-    head_epochs       = 3,
-    finetune_lr       = 1e-4, 
-    finetune_epochs   = 15,
+    head_lr = 1e-3,  
+    head_epochs = 3,
+    finetune_lr = 1e-4, 
+    finetune_epochs = 15,
+    
 
-    pos_weight        = None,
+    pos_weight = None,
 
-    checkpoint_dir    = "checkpoints",
-    best_model_path   = "resnet18_best.pth",
+    checkpoint_dir = "checkpoints",
+    best_model_path = "resnet18_best.pth",
+    latest_model_path = "resnet18_last.pth",
 )
 
 
@@ -35,7 +37,10 @@ def build_model(device):
 
 def freeze_backbone(model):
     for name, param in model.named_parameters():
-        param.requires_grad = name.startswith("fc.")
+        param.requires_grad = False
+
+    for param in model.fc.parameters():
+        param.requires_grad = True
 
 
 def unfreeze_all(model):
@@ -60,7 +65,7 @@ def run_epoch(model, loader, criterion, optimizer, device, scaler,
             desc="train" if is_train else "val",
             leave=False,
             dynamic_ncols=True,
-            mininterval=1.0
+            mininterval=10.0
 )
         for batch_idx, (images, labels) in enumerate(pbar):
             images = images.to(device, non_blocking=True)
@@ -68,7 +73,7 @@ def run_epoch(model, loader, criterion, optimizer, device, scaler,
 
             with torch.autocast(device_type=device.type, enabled=(device.type != "cpu")):
                 outputs = model(images)
-                loss    = criterion(outputs, labels)
+                loss = criterion(outputs, labels)
                 if is_train:
                     loss = loss / accumulation_steps
 
@@ -83,7 +88,8 @@ def run_epoch(model, loader, criterion, optimizer, device, scaler,
             total_loss += batch_loss
             steps += 1
 
-            preds = (outputs.detach() > 0).int()
+            probs = torch.sigmoid(outputs.detach())
+            preds = (probs > 0.5).int()
             correct += (preds == labels.int()).sum().item()
             total   += labels.size(0)
 
@@ -94,7 +100,8 @@ def run_epoch(model, loader, criterion, optimizer, device, scaler,
 
 def train_stage(model, train_loader, val_loader, criterion, device, scaler,
                 lr, num_epochs, accumulation_steps, scheduler_T, start_epoch=0,
-                best_val_acc=0.0, best_path="resnet18_best.pth", stage_name=""):
+                best_val_acc=0.0, best_path="resnet18_best.pth",
+                latest_path = "resnet18_last.pth", stage_name=""):
 
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=lr, weight_decay=1e-4)
     scheduler = CosineAnnealingLR(optimizer, T_max=scheduler_T, eta_min=lr * 0.01)
@@ -111,6 +118,9 @@ def train_stage(model, train_loader, val_loader, criterion, device, scaler,
 
         print(f"Train loss: {train_loss:.4f}  acc: {train_acc:.4f}")
         print(f"Val loss: {val_loss:.4f}  acc: {val_acc:.4f}  lr: {scheduler.get_last_lr()[0]:.2e}")
+        
+        torch.save(model.state_dict(), latest_path)
+        print(f"Saved last model: {latest_path}  (val_acc={val_acc:.4f})")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -132,10 +142,10 @@ def main():
     print(f"Using device: {device}")
 
     train_loader, val_loader = get_data_loaders(
-        batch_size   = CONFIG["batch_size"],
-        max_samples  = CONFIG["max_samples"],
-        num_workers  = CONFIG["num_workers"],
-        img_size     = CONFIG["img_size"],
+        batch_size = CONFIG["batch_size"],
+        max_samples = CONFIG["max_samples"],
+        num_workers = CONFIG["num_workers"],
+        img_size = CONFIG["img_size"],
     )
 
     model = build_model(device)
@@ -155,14 +165,15 @@ def main():
     freeze_backbone(model)
     best_val_acc, epoch_offset = train_stage(
         model, train_loader, val_loader, criterion, device, scaler,
-        lr                = CONFIG["head_lr"],
-        num_epochs        = CONFIG["head_epochs"],
-        accumulation_steps= CONFIG["accumulation_steps"],
-        scheduler_T       = CONFIG["head_epochs"],
-        start_epoch       = 0,
-        best_val_acc      = best_val_acc,
-        best_path         = CONFIG["best_model_path"],
-        stage_name        = "Head only",
+        lr = CONFIG["head_lr"],
+        num_epochs = CONFIG["head_epochs"],
+        accumulation_steps = CONFIG["accumulation_steps"],
+        scheduler_T = CONFIG["head_epochs"],
+        start_epoch = 0,
+        best_val_acc = best_val_acc,
+        best_path = CONFIG["best_model_path"],
+        stage_name = "Head only",
+        latest_path = CONFIG["latest_model_path"],
     )
 
     #fine-tune full network
@@ -172,17 +183,19 @@ def main():
     unfreeze_all(model)
     best_val_acc, _ = train_stage(
         model, train_loader, val_loader, criterion, device, scaler,
-        lr                = CONFIG["finetune_lr"],
-        num_epochs        = CONFIG["finetune_epochs"],
-        accumulation_steps= CONFIG["accumulation_steps"],
-        scheduler_T       = CONFIG["finetune_epochs"],
-        start_epoch       = epoch_offset,
-        best_val_acc      = best_val_acc,
-        best_path         = CONFIG["best_model_path"],
-        stage_name        = "Full fine-tune",
+        lr = CONFIG["finetune_lr"],
+        num_epochs = CONFIG["finetune_epochs"],
+        accumulation_steps = CONFIG["accumulation_steps"],
+        scheduler_T = CONFIG["finetune_epochs"],
+        start_epoch = epoch_offset,
+        best_val_acc = best_val_acc,
+        best_path = CONFIG["best_model_path"],
+        stage_name = "Full fine-tune",
+        latest_path = CONFIG["latest_model_path"],
     )
 
     print(f"\nTraining complete. Best validation accuracy: {best_val_acc:.4f}")
+    print(f" Latests model saved to: {CONFIG['latest_model_path']}")
     print(f" Best model saved to: {CONFIG['best_model_path']}")
 
 
