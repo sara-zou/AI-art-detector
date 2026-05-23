@@ -6,7 +6,7 @@ from torchvision import transforms, models
 from PIL import Image
 from threshold import THRESHOLD
 
-CHECKPOINT  = "../resnet18_best.pth"
+CHECKPOINT  = "../models/resnet18_best.pth"
 IMG_SIZE    = 224
 CLASS_NAMES = {1: "Human", 0: "AI"}
 THRESHOLD

@@ -106,7 +106,7 @@ def main():
         img_size = 224,
     )
 
-    model = load_model("resnet18_best.pth", device)
+    model = load_model("models/resnet18_best.pth", device)
 
     labels, preds, probs = evaluate(model, val_loader, device)
     
@@ -114,6 +114,9 @@ def main():
     print(f"\nOptimal threshold: {optimal_threshold:.4f}")
     
     with open("src/threshold.py", "w") as f:
+        f.write(f"THRESHOLD = {optimal_threshold}\n")
+        
+    with open("backend/threshold.py", "w") as f:
         f.write(f"THRESHOLD = {optimal_threshold}\n")
     
     preds = (probs >= optimal_threshold).astype(int)

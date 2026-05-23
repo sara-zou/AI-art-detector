@@ -24,8 +24,8 @@ CONFIG = dict(
     pos_weight = None,
 
     checkpoint_dir = "checkpoints",
-    best_model_path = "resnet18_best.pth",
-    latest_model_path = "resnet18_last.pth",
+    best_model_path = "../models/resnet18_best.pth",
+    latest_model_path = "models/resnet18_last.pth",
 )
 
 
@@ -100,8 +100,8 @@ def run_epoch(model, loader, criterion, optimizer, device, scaler,
 
 def train_stage(model, train_loader, val_loader, criterion, device, scaler,
                 lr, num_epochs, accumulation_steps, scheduler_T, start_epoch=0,
-                best_val_acc=0.0, best_path="resnet18_best.pth",
-                latest_path = "resnet18_last.pth", stage_name=""):
+                best_val_acc=0.0, best_path="../models/resnet18_best.pth",
+                latest_path = "../models/resnet18_last.pth", stage_name=""):
 
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=lr, weight_decay=1e-4)
     scheduler = CosineAnnealingLR(optimizer, T_max=scheduler_T, eta_min=lr * 0.01)
