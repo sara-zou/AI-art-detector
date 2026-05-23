@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
     confusion_matrix, ConfusionMatrixDisplay,
-    classification_report, roc_auc_score, roc_curve,
+    classification_report, roc_auc_score, roc_curve, f1_score
 )
 
 from dataloading import get_data_loaders
@@ -44,10 +44,16 @@ def evaluate(model, loader, device, threshold = 0.5):
 
 
 def find_optimal_threshold(labels, probs):
-    fpr, tpr, thresholds = roc_curve(labels, probs)
+    labels = np.array(labels)
+    probs = np.array(probs)
+    thresholds = np.linspace(0.01, 0.99, 200)
 
-    j_scores = tpr - fpr
-    best_idx = np.argmax(j_scores)
+    f1s = [
+        f1_score(labels, (probs >= t).astype(int))
+        for t in thresholds
+    ]
+    
+    best_idx = np.argmax(f1s)
 
     return thresholds[best_idx]
 
@@ -94,10 +100,10 @@ def main():
 
     # Evaluate on the full validation set
     _, val_loader = get_data_loaders(
-        batch_size   = 32,
-        max_samples  = None,
-        num_workers  = 4,
-        img_size     = 224,
+        batch_size = 32,
+        max_samples = None,
+        num_workers = 4,
+        img_size = 224,
     )
 
     model = load_model("resnet18_best.pth", device)
@@ -117,6 +123,11 @@ def main():
 
     auc = plot_roc_curve(labels, probs, save_path="roc_curve.png")
     print(f"ROC-AUC: {auc:.4f}")
+    
+    plt.hist(probs[labels==0], bins=50, alpha=0.5, label="Human")
+    plt.hist(probs[labels==1], bins=50, alpha=0.5, label="AI")
+    plt.legend()
+    plt.show()  
 
     plot_confusion_matrix(labels, preds, save_path="confusion_matrix.png")
 

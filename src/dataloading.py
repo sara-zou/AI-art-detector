@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
 
 
 def get_data_loaders(batch_size=32, max_samples=None, num_workers=4, img_size=224):
@@ -56,10 +57,11 @@ def get_data_loaders(batch_size=32, max_samples=None, num_workers=4, img_size=22
     )
 
     print(f"[DataLoader] Train: {len(train_dataset)} samples | Val: {len(val_dataset)} samples")
-    if hasattr(train_dataset, 'classes'):
-        print(f"[DataLoader] Classes: {train_dataset.classes}")
+    train_dataset = datasets.ImageFolder('dataset/train', transform=train_transform)
+    val_dataset   = datasets.ImageFolder('dataset/val',   transform=val_transform)
+    
     return train_loader, val_loader
-
+    
 # Visualisation helper
 _MEAN = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
 _STD  = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)

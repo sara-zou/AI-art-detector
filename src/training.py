@@ -120,7 +120,7 @@ def train_stage(model, train_loader, val_loader, criterion, device, scaler,
         print(f"Val loss: {val_loss:.4f}  acc: {val_acc:.4f}  lr: {scheduler.get_last_lr()[0]:.2e}")
         
         torch.save(model.state_dict(), latest_path)
-        print(f"Saved last model: {latest_path}  (val_acc={val_acc:.4f})")
+        print(f"Saved last path: {latest_path}  (val_acc={val_acc:.4f})")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
