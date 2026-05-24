@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
 from PIL import UnidentifiedImageError
- 
+from flask_cors import CORS
 import config
 from helpers import get_device, load_model, predict
 
 
 app = Flask(__name__)
+CORS(app)
 device = get_device()
 model = load_model(device)
 print(f"[Artifex] Device: {device}")
@@ -15,7 +16,7 @@ def health():
     return jsonify({"status": "ok", "device": str(device)})
 
 @app.post("/api/predict")
-def predict():
+def api_predict():
     #validate appropraite file existence
     if "image" not in request.files:
         return jsonify({"error": "No image field in request"}), 400
