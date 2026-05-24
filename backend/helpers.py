@@ -35,7 +35,7 @@ def predict(file_bytes: bytes, model: nn.Module, device: torch.device):
         output = model(tensor)
         prob_ai = torch.sigmoid(output).item()
     
-    label = "AI" if prob_ai >= THRESHOLD else "Human"
+    label = "Human" if prob_ai >= THRESHOLD else "AI"
     confidence = prob_ai if prob_ai >= THRESHOLD else 1.0 - prob_ai
     
     return {
