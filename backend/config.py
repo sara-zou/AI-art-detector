@@ -13,7 +13,7 @@ NORM_MEAN = [0.485, 0.456, 0.406]
 NORM_STD  = [0.229, 0.224, 0.225]
 
 # server
-PORT = int(os.environ.get("PORT", 5000))
+PORT = int(os.environ.get("PORT", 5001))
 
 # Set DEBUG=true in your environment for hot-reload during development.
 # Never enable this in production.

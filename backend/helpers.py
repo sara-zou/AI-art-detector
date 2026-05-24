@@ -19,10 +19,10 @@ def get_device():
         return torch.device("cuda")
     return torch.device("cpu")
 
-device = get_device()
 
-def load_model():
+def load_model(device):
     model = models.resnet18(weights=None)
+    model.fc = nn.Linear(model.fc.in_features, 1)
     model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
     model.to(device).eval()
     return model
