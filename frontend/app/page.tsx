@@ -1,5 +1,5 @@
-import ArtifexDetector from "./main";
+import ArtDetector from "./main";
 
 export default function Page() {
-  return <ArtifexDetector />;
+  return <ArtDetector />;
 }
