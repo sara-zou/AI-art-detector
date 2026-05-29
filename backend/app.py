@@ -6,7 +6,7 @@ from helpers import get_device, load_model, predict
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://ai-art-detector-psi.vercel.app"])
 device = get_device()
 model = load_model(device)
 print(f"[Artifex] Device: {device}")
