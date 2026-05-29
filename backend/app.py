@@ -47,4 +47,4 @@ def method_not_allowed(e):
     return jsonify({"error": "Method not allowed"}), 405
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=config.PORT)
+    app.run()
