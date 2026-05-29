@@ -5,6 +5,7 @@ import torch.nn as nn
 from config import CHECKPOINT_PATH, IMG_SIZE, THRESHOLD, NORM_MEAN, NORM_STD
 from torchvision import transforms, models
 from PIL import Image
+import gc
 
 _transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
@@ -25,6 +26,10 @@ def load_model(device):
     model.fc = nn.Linear(model.fc.in_features, 1)
     model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
     model.to(device).eval()
+    
+    torch.cuda.empty_cache() if torch.cuda.is_available() else None
+    gc.collect()
+
     return model
 
 def predict(file_bytes: bytes, model: nn.Module, device: torch.device):
@@ -38,6 +43,7 @@ def predict(file_bytes: bytes, model: nn.Module, device: torch.device):
     label = "Human" if prob_ai >= THRESHOLD else "AI"
     confidence = prob_ai if prob_ai >= THRESHOLD else 1.0 - prob_ai
     
+    gc.collect()
     return {
         "label": label,
         "confidence": round(confidence, 4),
