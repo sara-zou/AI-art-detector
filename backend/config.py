@@ -2,7 +2,7 @@ import os
 from threshold import THRESHOLD
 
 # paths
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "."))
 CHECKPOINT_PATH = os.path.join(PROJECT_ROOT, "models", "resnet18_best.pth")
 
 IMG_SIZE = 224
