@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://ai-art-detector.onrender.com/api/:path*",
+        destination: "https://sarazou-ai-art-detector.hf.space/api/:path*",
       },
     ] as any;
   },
