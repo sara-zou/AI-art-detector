@@ -2,10 +2,12 @@ import torch
 import io
 import torch
 import torch.nn as nn
-from config import CHECKPOINT_PATH, IMG_SIZE, THRESHOLD, NORM_MEAN, NORM_STD
+from config import MODEL_URL, CHECKPOINT_PATH, IMG_SIZE, THRESHOLD, NORM_MEAN, NORM_STD
 from torchvision import transforms, models
 from PIL import Image
 import gc
+import urllib.request
+import os
 
 _transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
@@ -22,14 +24,21 @@ def get_device():
 
 
 def load_model(device):
+    if not os.path.exists(CHECKPOINT_PATH):
+        print(f"[Artifex] Downloading model from Hugging Face...")
+        token = os.environ.get("HF_TOKEN")
+        request = urllib.request.Request(
+            MODEL_URL,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        with urllib.request.urlopen(request) as response, open(CHECKPOINT_PATH, "wb") as f:
+            f.write(response.read())
+        print(f"[Artifex] Model downloaded.")
+    
     model = models.resnet18(weights=None)
     model.fc = nn.Linear(model.fc.in_features, 1)
     model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
     model.to(device).eval()
-    
-    torch.cuda.empty_cache() if torch.cuda.is_available() else None
-    gc.collect()
-
     return model
 
 def predict(file_bytes: bytes, model: nn.Module, device: torch.device):
