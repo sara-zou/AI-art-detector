@@ -5,7 +5,9 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://sarazou-ai-art-detector.hf.space/api/:path*",
+        destination: process.env.NODE_ENV === "production"
+          ? "https://sarazou-ai-art-detector.hf.space/api/:path*"
+          : "http://localhost:5001/api/:path*",
       },
     ] as any;
   },
