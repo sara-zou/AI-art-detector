@@ -39,3 +39,14 @@ def load_queries(path: str) -> dict[str, str]:
         queries[current_name] = "\n".join(current_lines).strip()
  
     return queries
+
+queries = load_queries(QUERIES_PATH)
+
+def save_prediction(user_id, image_name, image_path, label, confidence, prob_ai):
+    with get_connection() as conn:
+        conn.execute(
+            queries["save_prediction"],
+            (user_id, image_name, image_path, label, confidence, prob_ai)
+        )
+        conn.commit()
+
