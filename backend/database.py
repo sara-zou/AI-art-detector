@@ -50,3 +50,11 @@ def save_prediction(user_id, image_name, image_path, label, confidence, prob_ai)
         )
         conn.commit()
 
+def get_predictions(user_id: str) -> list[dict]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            queries["get_predictions"],
+            (user_id,)
+        ).fetchall()
+    return [dict(row) for row in rows]
+ 
